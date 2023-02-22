@@ -1,39 +1,42 @@
 """Image Generation Module
     Used to generate images using the Stable Diffusion Pipeline
     To use:
-    pipeline = text_to_image_pipeline(<Model_Name>,[options]) 
+    pipeline = image_to_image_pipeline(<Model_Name>,[options]) 
     images = pipe(prompt,pipe)
     
     To call from terminal:
-    Generate_Modules/text_to_image.py <prompt>"""
-import argparse
+    Generate_Modules/image_to_image.py <prompt> <image>"""
 import torch
+import argparse
 from tune import tune
-from diffusers import StableDiffusionPipeline
-#tuning the pipe to work on lower end hardware
-
-#Used to generate a pipeline from the given model
-def text_to_image_pipeline(model_name,opt=["o"]):
-    pipe = StableDiffusionPipeline.from_pretrained("Models/"+model_name, torch_dtype=torch.float16)
+from PIL import Image
+from diffusers import StableDiffusionImg2ImgPipeline
+def image_to_image_pipeline(model_name,opt=["o"]):
+    pipe = StableDiffusionImg2ImgPipeline.from_pretrained("Models/"+model_name, torch_dtype=torch.float16)
     pipe = pipe.to("cuda")
     pipe = tune(opt,pipe)
     return pipe
-#Used to generate images using pipe created from above function
-def text_to_images(prompt,pipe,num_inferences=50,num_images=1,height=512,width=512,seed=0):
+
+def image_to_images(prompt,image,pipe,strength=0.75,guidance_scale=7.5,
+                   num_inferences=50,num_images=1,height=512,width=512,seed=0):
+    image=image.resize((width,height))
     if seed:
         generator = torch.manual_seed(seed)
         images = pipe(prompt,num_images_per_prompt=num_images,
                   num_inference_steps=num_inferences, generator=generator,
-                  height=height,width=width)
+                  image=image, strength=strength,guidance_scale=guidance_scale)
         return images
+    image=image.resize((width,height))
     images = pipe(prompt,num_images_per_prompt=num_images,
-                  num_inference_steps=num_inferences,height=height,width=width)
+                  num_inference_steps=num_inferences,
+                  image=image, strength=strength,guidance_scale=guidance_scale)
     return images
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     torch.cuda.empty_cache()
     parser.add_argument("prompt",  help="Prompt")
+    parser.add_argument("image",  help="Image")
     parser.add_argument("-hg", "--height", help="Height of output image")
     parser.add_argument("-wd", "--width", help="Width of output image")
     parser.add_argument("-nm","--name", help="Name of image")
@@ -41,6 +44,8 @@ if __name__=="__main__":
     parser.add_argument("-i","--inferences", help="The number of step inferences")
     parser.add_argument("-num","--number",help="Number of images per prompt")
     parser.add_argument("-s","--seed",help="Seed for random number generator")
+    parser.add_argument("-str","--strength",help="Strength of the prompt")
+    parser.add_argument("-g","--guidance",help="Guidance scale of the prompt")
     parser.add_argument("-d","--display",
                         help="To display the image",action="store_true")
     parser.add_argument("-v","--vaeslicing",
@@ -59,6 +64,9 @@ if __name__=="__main__":
     MODEL="stable-diffusion-v1-5"
     NUM_INFERENCES=50
     NUM_IMAGES=1
+    IMAGE=Image.open("Stored_Images/"+args.image)
+    GUIDANCE_SCALE=7.5
+    STRENGTH=0.75
     if args.height:
         HEIGHT=int(args.height)
     if args.width:
@@ -76,17 +84,23 @@ if __name__=="__main__":
         optimizers.append('o')
     if args.attention:
         optimizers.append('a')
-    
-    pipeline = text_to_image_pipeline(model_name=MODEL,opt=optimizers)
+    if args.strength:
+        STRENGTH=float(args.strength)
+    if args.guidance:
+        GUIDANCE_SCALE=float(args.guidance)
+   
+    pipeline = image_to_image_pipeline(model_name=MODEL,opt=optimizers)
     if args.seed:
-        generated_images = text_to_images(prompt=args.prompt,pipe=pipeline,
-                         num_inferences=NUM_INFERENCES,
+        generated_images = image_to_images(prompt=args.prompt,pipe=pipeline,
+                         num_inferences=NUM_INFERENCES,image=IMAGE,
                          num_images=NUM_IMAGES,height=HEIGHT,width=WIDTH,
+                         strength=STRENGTH,guidance_scale=GUIDANCE_SCALE,
                          seed=int(args.seed))
     else:
-        generated_images = text_to_images(prompt=args.prompt,pipe=pipeline,
-                         num_inferences=NUM_INFERENCES,
-                         num_images=NUM_IMAGES,height=HEIGHT,width=WIDTH)
+        generated_images = image_to_images(prompt=args.prompt,pipe=pipeline,
+                            num_inferences=NUM_INFERENCES,image=IMAGE,
+                            num_images=NUM_IMAGES,height=HEIGHT,width=WIDTH,
+                            strength=STRENGTH,guidance_scale=GUIDANCE_SCALE)
     generated_images=generated_images[0]
     for n,img in enumerate(generated_images):
         img.save("./Generated_Images/"+NAME+"("+str(n)+")"+".png")
