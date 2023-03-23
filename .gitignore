@@ -1,0 +1,12 @@
+Models/
+.vscode
+auth_token.txt
+Generated_Images/*.png
+Generated_Images/*.jpg
+Generated_Images/*.jpeg
+Stored_Images/*.png
+Stored_Images/*.jpg
+Stored_Images/*.jpeg
+__pycache__/
+Generated_Modules/__pycache__
+movies/*
