@@ -1,5 +1,7 @@
 # StableDiffusionImageGenerator
-A python project to generate images using the Stable Diffusion Model and the Hugging Face API.
+A python project to generate images using the Stable Diffusion Model and the Hugging Face API. <br>
+Check out my blog for further details: <br>
+https://medium.com/@deodeshmukh.aditya/using-ai-to-generate-images-a-blog-on-stable-diffusion-e6204811679b
 
 The Stable Diffusion model is used to generate images using various kinds of pipelines, including pre-existing pipelines such as image-to-image, text-to-image pipelines as well as custom pipelines such as weighted multiple image-to-image pipeline. <br>
 ## Installation
@@ -11,6 +13,7 @@ For this run the following command in your terminal
 pip install requirements.txt
 ```
 ## Running the Pipelines
+
 ### Text-to-Image:
 Run the following command in your terminal to generate an image when given a specific prompt:
 ```
@@ -38,3 +41,21 @@ python .\Image_Generators\linear_interpolation.py "<prompt>" "<Image1>" "<Image2
 ```
 python .\Image_Generators\<Function_Name>.py -h
 ```
+## Results
+### Text-to-Image:
+<img src="Assets/text-to-image.png" width="256" title="hover text" >
+A highway with lava on the side
+
+### Image-to-Image:
+<img src="Assets/rabbit.jpg" width="256" title="hover text" >
+This is the original Image
+<img src="Assets/image-to-image.png" width="256" title="hover text" >
+This is the generated image
+
+### Weighted Multiple Image-to-Image
+<img src="Assets/Image_weighted.png" width="256" title="hover text" >
+This image is 50% the Mona Lisa and 50% the Starry Night
+
+### Linear Interpolation
+![](https://github.com/AdityaDeodeshmukh/StableDiffusionImageGenerator/blob/master/Assets/interpolation.gif) <br>
+This is the linear interpolation between 2 Candy Castles
